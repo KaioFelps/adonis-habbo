@@ -44,6 +44,7 @@ export type RadioResponse = {
   listenersCount: number
   currentTrack: string
   announcer: string | null
+  promoter: string | null
   title: string | null
   streamUrl: string
 }
@@ -69,6 +70,7 @@ export default class RadioController {
       currentTrack: streamData.icestats.source.title,
       listenersCount: streamData.icestats.source.listeners,
       announcer: program?.announcer.nickname ?? null,
+      promoter: program?.promoter?.nickname ?? null,
       title: program?.name ?? null,
       streamUrl: streamData.icestats.source.listenurl,
     } satisfies RadioResponse
