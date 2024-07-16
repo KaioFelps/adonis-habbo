@@ -5,10 +5,19 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('id')
+      table.increments()
+      table
+        .integer('tokenable_id')
+        .notNullable()
+        .unsigned()
+        .references('id')
+        .inTable('users')
+        .onDelete('CASCADE')
 
-      table.timestamp('created_at')
-      table.timestamp('updated_at')
+      table.string('hash').notNullable().unique()
+      table.timestamp('created_at').notNullable()
+      table.timestamp('updated_at').notNullable()
+      table.timestamp('expires_at').notNullable()
     })
   }
 
