@@ -1,8 +1,9 @@
 import RadioProgram from '#models/radio_program'
 import env from '#start/env'
-import { programPromotionSchedulingValidator, scheduleProgramValidator } from '#validators/radio'
+import { scheduleProgramValidator, unscheduleProgramValidator } from '#validators/radio'
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
+import { IErrorResponse } from '../core/types/spec/Error.js'
 
 type StreamData = {
   icestats: {
@@ -52,71 +53,72 @@ export default class RadioController {
     const response = await fetch(env.get('KIHABBO_STREAM_DATA_URL'))
     const streamData = (await response.json()) as StreamData
 
-    const now = DateTime.now().toSQL()
+    const now = DateTime.now().toUTC().toSQL()
 
     const program = await RadioProgram.query()
       .select('*')
       .where((query) => {
-        query.where('starts_at', '>=', now)
-        query.where('ends_at', '<=', now)
+        query.where('starts_at', '<=', now)
+        query.where('ends_at', '>=', now)
       })
+      .preload('announcer')
+      .preload('promoter')
       .first()
 
     return {
       currentTrack: streamData.icestats.source.title,
       listenersCount: streamData.icestats.source.listeners,
       announcer: program?.announcer.nickname ?? null,
-      title: program?.program ?? null,
+      title: program?.name ?? null,
       streamUrl: streamData.icestats.source.listenurl,
     } satisfies RadioResponse
   }
 
-  async scheduleProgram({ request, response, auth }: HttpContext) {
+  async scheduleProgram({ request, response, auth, bouncer }: HttpContext) {
+    const user = await auth.authenticate()
     const [error, payload] = await scheduleProgramValidator.tryValidate(request.all())
 
     if (error) return response.badRequest(error)
 
-    const radioProgram = await RadioProgram.create({
-      ...payload,
-      endsAt: DateTime.fromJSDate(payload.endsAt),
-      startsAt: DateTime.fromJSDate(payload.startsAt),
-    })
+    if (await bouncer.with('RadioPolicy').denies('scheduleProgram')) {
+      return response.forbidden({
+        code: 403,
+        message: 'Você não pode agendar programas de rádio.',
+      } satisfies IErrorResponse)
+    }
 
-    await radioProgram.related('announcer').associate(auth.user!)
+    let radioProgram = new RadioProgram()
+    radioProgram.name = payload.program
+    radioProgram.endsAt = DateTime.fromJSDate(payload.endsAt)
+    radioProgram.startsAt = DateTime.fromJSDate(payload.startsAt)
+
+    radioProgram = await user.related('radioPrograms').create(radioProgram)
+
+    return { program: radioProgram }
   }
 
-  async unscheduleProgram({ request, response, auth }: HttpContext) {
-    const [error, payload] = await scheduleProgramValidator.tryValidate(request.all())
+  async unscheduleProgram({ request, response, bouncer }: HttpContext) {
+    const [error, params] = await unscheduleProgramValidator.tryValidate(request.params())
 
-    if (error) return response.badRequest(error)
+    const notFoundResponse = response.notFound({
+      code: 404,
+      message: 'Programa não encontrado.',
+    } satisfies IErrorResponse)
 
-    const radioProgram = await RadioProgram.create({
-      ...payload,
-      endsAt: DateTime.fromJSDate(payload.endsAt),
-      startsAt: DateTime.fromJSDate(payload.startsAt),
-    })
+    if (error) return notFoundResponse
 
-    await radioProgram.related('announcer').associate(auth.user!)
-  }
+    const program = await RadioProgram.find(params.id)
 
-  async scheduleProgramPromotion({ request, auth, response }: HttpContext) {
-    const [error, payload] = await programPromotionSchedulingValidator.tryValidate(request.all())
+    if (!program) return notFoundResponse
 
-    if (error) return response.badRequest(error)
+    if (await bouncer.with('RadioPolicy').denies('unscheduleProgram', program))
+      return response.forbidden({
+        code: 403,
+        message: 'Você não pode agendar programas de rádio.',
+      } satisfies IErrorResponse)
 
-    const radioProgram = await RadioProgram.findByOrFail('id', payload.params.programId)
+    await program.delete()
 
-    if (!radioProgram.promoter) await radioProgram.related('promoter').associate(auth.user!)
-  }
-
-  async unscheduleProgramPromotion({ request, auth, response }: HttpContext) {
-    const [error, payload] = await programPromotionSchedulingValidator.tryValidate(request.all())
-
-    if (error) return response.badRequest(error)
-
-    const radioProgram = await RadioProgram.findByOrFail('id', payload.params.programId)
-
-    if (radioProgram.promoter && radioProgram.promoter.id === auth.user?.id)
-      await radioProgram.related('promoter').dissociate()
+    return response.noContent()
   }
 }

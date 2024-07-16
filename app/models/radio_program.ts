@@ -7,14 +7,14 @@ export default class RadioProgram extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
-  @belongsTo(() => User)
-  declare announcer: BelongsTo<typeof User>
+  @column()
+  declare announcerId: number
 
   @column()
-  declare program: string
+  declare promoterId?: number
 
-  @belongsTo(() => User)
-  declare promoter: BelongsTo<typeof User>
+  @column()
+  declare name: string
 
   @column.dateTime()
   declare startsAt: DateTime
@@ -24,4 +24,10 @@ export default class RadioProgram extends BaseModel {
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
+
+  @belongsTo(() => User, { foreignKey: 'announcerId' })
+  declare announcer: BelongsTo<typeof User>
+
+  @belongsTo(() => User, { foreignKey: 'promoterId' })
+  declare promoter: BelongsTo<typeof User>
 }

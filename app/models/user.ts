@@ -54,9 +54,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @hasMany(() => ArticleComment)
   declare articlesComments: HasMany<typeof ArticleComment>
 
-  @hasMany(() => RadioProgram, { foreignKey: 'announcer_id' })
+  @hasMany(() => RadioProgram, { foreignKey: 'announcerId' })
   declare radioPrograms: HasMany<typeof RadioProgram>
 
-  @hasMany(() => RadioProgram, { foreignKey: 'promoter_id' })
+  @hasMany(() => RadioProgram, { foreignKey: 'promoterId' })
   declare promotedRadioProgramas: HasMany<typeof RadioProgram>
 }

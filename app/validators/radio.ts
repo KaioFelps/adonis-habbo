@@ -1,18 +1,16 @@
 import vine from '@vinejs/vine'
+import { TimePolitics } from '../core/politics/time.js'
 
 export const scheduleProgramValidator = vine.compile(
   vine.object({
-    startsAt: vine.date(),
-    endsAt: vine.date(),
-    announcerId: vine.number(),
+    startsAt: vine.date({ formats: { format: TimePolitics.isoStringFormat } }),
+    endsAt: vine.date({ formats: { format: TimePolitics.isoStringFormat } }),
     program: vine.string(),
   })
 )
 
-export const programPromotionSchedulingValidator = vine.compile(
+export const unscheduleProgramValidator = vine.compile(
   vine.object({
-    params: vine.object({
-      programId: vine.number(),
-    }),
+    id: vine.number().min(1),
   })
 )

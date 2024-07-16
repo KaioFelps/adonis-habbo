@@ -22,7 +22,12 @@ enum Permission {
   HOUSEKEEPER_ACCESS,
 
   // RADIO
-  SCHEDULE_PROGRAM
+  SCHEDULE_PROGRAM,
+  UNSCHEDULE_ANY_PROGRAM,
+
+  // PROMOTERS
+  SCHEDULE_PROGRAM_PROMOTION,
+  UNSCHEDULE_ANY_PROGRAM_PROMOTION,
 }
 
 export class RolePermissions {
@@ -34,8 +39,20 @@ export class RolePermissions {
     Permission.POST_ARTICLE,
     Permission.HOUSEKEEPER_ACCESS,
   ]
-  static [UserRole.SUPERVISOR]: Permission[] = [...this[UserRole.EDITOR]]
-  static [UserRole.COORDENATOR]: Permission[] = [...this[UserRole.SUPERVISOR]]
+  static [UserRole.PROMOTER]: Permission[] = [Permission.SCHEDULE_PROGRAM_PROMOTION]
+
+  static [UserRole.BROADCASTER]: Permission[] = [Permission.SCHEDULE_PROGRAM]
+
+  static [UserRole.SUPERVISOR]: Permission[] = [
+    ...this[UserRole.EDITOR],
+    ...this[UserRole.BROADCASTER],
+    ...this[UserRole.PROMOTER],
+  ]
+  static [UserRole.COORDENATOR]: Permission[] = [
+    ...this[UserRole.SUPERVISOR],
+    Permission.UNSCHEDULE_ANY_PROGRAM,
+    Permission.UNSCHEDULE_ANY_PROGRAM_PROMOTION,
+  ]
   static [UserRole.ADMINISTRATOR]: Permission[] = [...this[UserRole.COORDENATOR]]
   static [UserRole.MANAGER]: Permission[] = [...this[UserRole.ADMINISTRATOR]]
   static [UserRole.CEO]: Permission[] = [...this[UserRole.MANAGER]]

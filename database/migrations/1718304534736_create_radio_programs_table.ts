@@ -6,12 +6,17 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
+
+      table.string('name')
+
       table
         .integer('announcer_id')
         .unsigned()
         .references('id')
         .inTable('users')
         .onDelete('SET NULL')
+        .notNullable()
+
       table
         .integer('promoter_id')
         .unsigned()
@@ -19,9 +24,9 @@ export default class extends BaseSchema {
         .inTable('users')
         .onDelete('SET NULL')
         .nullable()
-      table.string('name')
-      table.timestamp('starts_at')
-      table.timestamp('ends_at')
+
+      table.timestamp('starts_at').unique()
+      table.timestamp('ends_at').unique()
       table.timestamp('created_at')
     })
   }
