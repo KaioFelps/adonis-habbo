@@ -43,5 +43,6 @@ router
   .group(() => {
     router.get('/', [RadioController, 'getRadioStatus']).as('radio.status')
     router.post('/schedule', [RadioController, 'scheduleProgram']).as('radio.schedule')
+    router.delete('/:id/unschedule', [RadioController, 'unscheduleProgram']).as('radio.unschedule')
   })
   .prefix('/radio')
