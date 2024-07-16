@@ -40,6 +40,7 @@ router.use([
   () => import('@adonisjs/shield/shield_middleware'),
   () => import('@adonisjs/auth/initialize_auth_middleware'),
   () => import('#middleware/initialize_bouncer_middleware'),
+  () => import('#middleware/inertia_middleware'),
 ])
 
 /**
@@ -50,4 +51,5 @@ export const middleware = router.named({
   guest: () => import('#middleware/guest_middleware'),
   auth: () => import('#middleware/auth_middleware'),
   sgc_auth: () => import('#middleware/sgc_auth_middleware'),
+  initiate_auth_user: () => import('#middleware/initiate_user_in_optional_auth_routes_middleware'),
 })
