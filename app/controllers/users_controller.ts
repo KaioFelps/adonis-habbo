@@ -2,7 +2,6 @@ import BadRequestException from '#exceptions/bad_request_exception'
 import User from '#models/user'
 import { createUserValidator, toggleUserActiveValidator, editUserValidator } from '#validators/user'
 import type { HttpContext } from '@adonisjs/core/http'
-import hash from '@adonisjs/core/services/hash'
 
 export default class UsersController {
   /**
@@ -24,8 +23,6 @@ export default class UsersController {
     if (error) {
       return response.badRequest(error)
     }
-
-    payload.password = await hash.make(payload.password)
 
     const user = await User.create(payload)
 
@@ -66,7 +63,7 @@ export default class UsersController {
     user.nickname = payload.nickname ?? user.nickname
     user.motto = payload.motto ?? user.motto
     user.role = payload.role ?? user.role
-    user.password = payload.password ? await hash.make(payload.password) : user.password
+    if (payload.password) user.password = payload.password
 
     await user.save()
 

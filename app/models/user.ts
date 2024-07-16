@@ -11,8 +11,8 @@ import { UserRole } from './enums/user_role.js'
 import RadioProgram from './radio_program.js'
 import { DbRememberMeTokensProvider } from '@adonisjs/auth/session'
 
-const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
-  uids: [],
+const AuthFinder = withAuthFinder(() => hash.use('argon'), {
+  uids: ['nickname'],
   passwordColumnName: 'password',
 })
 
