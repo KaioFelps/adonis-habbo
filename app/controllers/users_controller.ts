@@ -56,7 +56,7 @@ export default class UsersController {
 
     if (!user) throw new BadRequestException('Usuário não encontrado.')
 
-    if (await bouncer.with('UserPolicy').denies('index')) {
+    if (await bouncer.with('UserPolicy').denies('update', user)) {
       return response.forbidden('Não pode visualizar todos os usuários.')
     }
 
