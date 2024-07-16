@@ -13,6 +13,7 @@
 */
 
 export const policies = {
+  RadioPromotionPolicy: () => import('#policies/radio_promotion_policy'),
   RadioPolicy: () => import('#policies/radio_policy'),
   UserPolicy: () => import('#policies/user_policy'),
 }

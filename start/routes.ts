@@ -9,6 +9,7 @@
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
+const RadioPromotionsController = () => import('#controllers/radio_promotions_controller')
 
 const SiteController = () => import('#controllers/site_controller')
 const SessionController = () => import('#controllers/session_controller')
@@ -25,24 +26,36 @@ router
   })
   .use(middleware.initiate_auth_user())
 
+// RADIO STATUS
+router.get('/radio', [RadioController, 'getRadioStatus']).as('radio.status')
+
 // SGC ROUTES
 router
   .group(() => {
     router.get('/', ({ inertia }) => inertia.render('home', { version: 900 })).as('sgc.home')
 
+    // USERS
     router.patch('/users/:id/update', [UsersController, 'update']).as('sgc.users.update')
     router
       .put('/users/:id/toggleactive', [UsersController, 'toggleActive'])
       .as('sgc.users.toggle_active')
+
+    // RADIO
+    router.post('/radio/schedule', [RadioController, 'scheduleProgram']).as('radio.schedule')
+    router
+      .delete('/radio/:id/unschedule', [RadioController, 'unscheduleProgram'])
+      .as('radio.unschedule')
+
+    // RADIO PROMOTIONS
+    router
+      .post('/radio/:programId/promote', [RadioPromotionsController, 'scheduleProgramPromotion'])
+      .as('radio.promotion.schedule')
+    router
+      .delete('/radio/:programId/promote', [
+        RadioPromotionsController,
+        'unscheduleProgramPromotion',
+      ])
+      .as('radio.promotion.unschedule')
   })
   .prefix('sgc')
   .middleware([middleware.auth(), middleware.sgc_auth()])
-
-// RADIO API ROUTES
-router
-  .group(() => {
-    router.get('/', [RadioController, 'getRadioStatus']).as('radio.status')
-    router.post('/schedule', [RadioController, 'scheduleProgram']).as('radio.schedule')
-    router.delete('/:id/unschedule', [RadioController, 'unscheduleProgram']).as('radio.unschedule')
-  })
-  .prefix('/radio')
