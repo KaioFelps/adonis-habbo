@@ -10,29 +10,38 @@
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 
+const SiteController = () => import('#controllers/site_controller')
+const SessionController = () => import('#controllers/session_controller')
 const RadioController = () => import('#controllers/radio_controller')
 const UsersController = () => import('#controllers/users_controller')
 
-router.get('/', ({ inertia }) => inertia.render('home', { version: 500 }))
+// SITE ROUTES
+router
+  .group(function () {
+    router.get('/', [SiteController, 'home']).as('home')
+    router.post('/login', [SessionController, 'login']).use(middleware.guest()).as('login')
+    router.post('/logout', [SessionController, 'logout']).use(middleware.auth()).as('logout')
+    router.post('/users/store', [UsersController, 'store']).as('users.store')
+  })
+  .use(middleware.initiate_auth_user())
 
+// SGC ROUTES
 router
   .group(() => {
-    router.post('/users/store', [UsersController, 'store'])
+    router.get('/', ({ inertia }) => inertia.render('home', { version: 900 })).as('sgc.home')
 
+    router.patch('/users/:id/update', [UsersController, 'update']).as('sgc.users.update')
     router
-      .group(() => {
-        router.patch('/users/:id/update', [UsersController, 'update'])
-        router.put('/users/:id/toggleactive', [UsersController, 'toggleActive'])
-        router.get('/', ({ inertia }) => inertia.render('home', { version: 900 }))
-      })
-      .middleware([middleware.auth(), middleware.sgc_auth()])
+      .put('/users/:id/toggleactive', [UsersController, 'toggleActive'])
+      .as('sgc.users.toggle_active')
   })
   .prefix('sgc')
+  .middleware([middleware.auth(), middleware.sgc_auth()])
 
+// RADIO API ROUTES
 router
   .group(() => {
-    router.get('/', [RadioController, 'getRadioStatus'])
-
-    router.post('/schedule', [RadioController, 'scheduleProgram'])
+    router.get('/', [RadioController, 'getRadioStatus']).as('radio.status')
+    router.post('/schedule', [RadioController, 'scheduleProgram']).as('radio.schedule')
   })
   .prefix('/radio')
