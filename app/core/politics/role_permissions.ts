@@ -28,6 +28,10 @@ enum Permission {
   // PROMOTERS
   SCHEDULE_PROGRAM_PROMOTION,
   UNSCHEDULE_ANY_PROGRAM_PROMOTION,
+
+  // RÁDIO PRESENCES
+  SEE_ALL_PRESENCES,
+  CLEAN_PRESENCES,
 }
 
 export class RolePermissions {
@@ -47,13 +51,20 @@ export class RolePermissions {
     ...this[UserRole.EDITOR],
     ...this[UserRole.BROADCASTER],
     ...this[UserRole.PROMOTER],
+    Permission.SEE_ALL_PRESENCES,
   ]
+
   static [UserRole.COORDENATOR]: Permission[] = [
     ...this[UserRole.SUPERVISOR],
     Permission.UNSCHEDULE_ANY_PROGRAM,
     Permission.UNSCHEDULE_ANY_PROGRAM_PROMOTION,
   ]
-  static [UserRole.ADMINISTRATOR]: Permission[] = [...this[UserRole.COORDENATOR]]
+
+  static [UserRole.ADMINISTRATOR]: Permission[] = [
+    ...this[UserRole.COORDENATOR],
+    Permission.CLEAN_PRESENCES,
+  ]
+
   static [UserRole.MANAGER]: Permission[] = [...this[UserRole.ADMINISTRATOR]]
   static [UserRole.CEO]: Permission[] = [...this[UserRole.MANAGER]]
 

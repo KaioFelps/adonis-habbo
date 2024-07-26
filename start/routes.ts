@@ -9,6 +9,7 @@
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
+const RadioPresencesController = () => import('#controllers/radio_presences_controller')
 const RadioPromotionsController = () => import('#controllers/radio_promotions_controller')
 
 const SiteController = () => import('#controllers/site_controller')
@@ -26,8 +27,11 @@ router
   })
   .use(middleware.initiate_auth_user())
 
-// RADIO STATUS
+// RADIO
 router.get('/radio', [RadioController, 'getRadioStatus']).as('radio.status')
+router
+  .post('/radio/:programId/presence', [RadioPresencesController, 'markPresence'])
+  .as('radio.presence.mark')
 
 // SGC ROUTES
 router
@@ -44,18 +48,22 @@ router
     router.post('/radio/schedule', [RadioController, 'scheduleProgram']).as('radio.schedule')
     router
       .delete('/radio/:id/unschedule', [RadioController, 'unscheduleProgram'])
-      .as('radio.unschedule')
+      .as('sgc.radio.unschedule')
 
     // RADIO PROMOTIONS
     router
       .post('/radio/:programId/promote', [RadioPromotionsController, 'scheduleProgramPromotion'])
-      .as('radio.promotion.schedule')
+      .as('sgc.radio.promotion.schedule')
     router
       .delete('/radio/:programId/promote', [
         RadioPromotionsController,
         'unscheduleProgramPromotion',
       ])
-      .as('radio.promotion.unschedule')
+      .as('sgc.radio.promotion.unschedule')
+
+    router
+      .delete('/radio/presences/clean', [RadioPresencesController, 'resetUsersPresences'])
+      .as('sgc.radio.presence.clean')
   })
   .prefix('sgc')
   .middleware([middleware.auth(), middleware.sgc_auth()])

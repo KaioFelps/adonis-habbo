@@ -10,6 +10,7 @@ import ArticleComment from './article_comment.js'
 import { UserRole } from './enums/user_role.js'
 import RadioProgram from './radio_program.js'
 import { DbRememberMeTokensProvider } from '@adonisjs/auth/session'
+import RadioPresence from './radio_presence.js'
 
 const AuthFinder = withAuthFinder(() => hash.use('argon'), {
   uids: ['nickname'],
@@ -39,6 +40,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare active: boolean
 
+  @column()
+  declare presencesCount: number
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -59,4 +63,7 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @hasMany(() => RadioProgram, { foreignKey: 'promoterId' })
   declare promotedRadioProgramas: HasMany<typeof RadioProgram>
+
+  @hasMany(() => RadioPresence)
+  declare radioPresences: HasMany<typeof RadioPresence>
 }

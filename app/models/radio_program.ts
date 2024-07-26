@@ -1,7 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
+import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
 import User from './user.js'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import RadioPresence from './radio_presence.js'
 
 export default class RadioProgram extends BaseModel {
   @column({ isPrimary: true })
@@ -30,4 +31,7 @@ export default class RadioProgram extends BaseModel {
 
   @belongsTo(() => User, { foreignKey: 'promoterId' })
   declare promoter: BelongsTo<typeof User>
+
+  @hasMany(() => RadioPresence, { foreignKey: 'programId' })
+  declare presences: HasMany<typeof RadioPresence>
 }
